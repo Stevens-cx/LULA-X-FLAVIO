@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LULA VS FLAVIO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);}
+
+#authScreen{width:100%;max-width:420px;padding:16px;}
+.auth-card{background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:36px 32px;color:#fff;}
+.auth-card h2{text-align:center;font-size:1.6rem;font-weight:800;margin-bottom:4px;letter-spacing:1px;background:linear-gradient(90deg,#7c6af7,#7cf7c8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.auth-card .tagline{text-align:center;font-size:.78rem;color:#aaa;margin-bottom:24px;}
+.tab-row{display:flex;background:rgba(255,255,255,0.06);border-radius:12px;padding:4px;margin-bottom:24px;}
+.tab-btn{flex:1;padding:9px;border-radius:9px;border:none;background:transparent;color:#aaa;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.tab-btn.active{background:linear-gradient(90deg,#7c6af7,#5e9ef7);color:#fff;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:.72rem;color:#ccc;margin-bottom:5px;letter-spacing:.4px;text-transform:uppercase;}
+.field input{width:100%;padding:11px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:#fff;font-size:.9rem;outline:none;transition:border .2s;}
+.field input:focus{border-color:#7c6af7;}
+.field input.err-field{border-color:#ff6b6b;}
+.field .ferr{color:#ff6b6b;font-size:.72rem;margin-top:4px;display:none;}
+.invite-field{position:relative;}
+.invite-field input{padding-right:90px;}
+.invite-optional{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.65rem;color:#666;pointer-events:none;}
+.btn-primary{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(90deg,#7c6af7,#5e9ef7);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.auth-err{color:#ff6b6b;font-size:.78rem;margin-top:8px;text-align:center;display:none;}
+
+/* ── DASHBOARD ── */
+#dashboard{display:none;width:100%;max-width:520px;padding:16px;}
+.dash-card{background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:30px 26px;color:#fff;}
+.dash-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.dash-top h2{font-size:1.2rem;font-weight:800;background:linear-gradient(90deg,#7c6af7,#7cf7c8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.user-badge{font-size:.72rem;color:#aaa;background:rgba(255,255,255,0.07);padding:4px 10px;border-radius:20px;}
+.dash-balance{text-align:center;margin-bottom:22px;}
+.dash-balance .bal-label{font-size:.7rem;color:#aaa;margin-bottom:2px;}
+.dash-balance .bal-val{font-size:2rem;font-weight:800;color:#7cf7c8;}
+.options-row{display:flex;gap:12px;justify-content:center;margin-bottom:12px;}
+.opt-btn{flex:1;padding:20px 8px;border-radius:14px;border:2px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.05);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.opt-btn:hover{background:rgba(124,106,247,0.22);border-color:#7c6af7;transform:translateY(-2px);}
+.action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;}
+.action-grid-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.action-btn{padding:14px 8px;border-radius:12px;border:none;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.2px;}
+.action-btn:hover{transform:translateY(-2px);opacity:.9;}
+.btn-saque{background:rgba(124,247,200,0.1);border:2px solid rgba(124,247,200,0.3);color:#7cf7c8;}
+.btn-deposito{background:rgba(94,158,247,0.1);border:2px solid rgba(94,158,247,0.3);color:#5e9ef7;}
+.btn-aportes{background:rgba(180,130,255,0.1);border:2px solid rgba(180,130,255,0.3);color:#c89eff;grid-column:1/-1;}
+.btn-invite{background:rgba(255,200,80,0.1);border:2px solid rgba(255,200,80,0.3);color:#ffc850;}
+.logout-link{display:block;text-align:center;margin-top:16px;font-size:.75rem;color:#666;cursor:pointer;text-decoration:underline;}
+
+/* ── OVERLAYS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.modal{background:#1e1e3a;border:1px solid rgba(255,255,255,0.13);border-radius:18px;padding:26px 22px;width:360px;max-width:95vw;color:#fff;transform:translateY(20px);transition:transform .25s;max-height:90vh;overflow-y:auto;}
+.overlay.show .modal{transform:translateY(0);}
+.modal h3{font-size:1rem;margin-bottom:4px;}
+.modal p.hint{font-size:.74rem;color:#aaa;margin-bottom:16px;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;}
+.btn-sec{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:transparent;color:#ccc;font-size:.83rem;cursor:pointer;}
+.btn-sec:hover{opacity:.7;}
+.btn-confirm{flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,#7c6af7,#5e9ef7);color:#fff;font-size:.83rem;font-weight:600;cursor:pointer;}
+.btn-confirm:hover{opacity:.85;}
+.btn-confirm:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ── VALUE TAB ── */
+#valueOverlay .modal{width:380px;}
+.option-badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;letter-spacing:1px;margin-bottom:14px;background:linear-gradient(90deg,#7c6af7,#5e9ef7);color:#fff;}
+.balance-info{background:rgba(124,247,200,0.07);border:1px solid rgba(124,247,200,0.2);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.balance-info .bi-label{font-size:.7rem;color:#aaa;}
+.balance-info .bi-val{font-size:1rem;font-weight:700;color:#7cf7c8;}
+.invest-input-wrap{position:relative;margin-bottom:14px;}
+.invest-input-wrap .currency-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1.1rem;color:#aaa;font-weight:600;pointer-events:none;}
+.invest-input{width:100%;padding:14px 14px 14px 38px;border-radius:12px;border:2px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:#fff;font-size:1.4rem;font-weight:700;outline:none;transition:border .2s;}
+.invest-input:focus{border-color:#7c6af7;}
+.invest-input.err-border{border-color:#ff6b6b;}
+.invest-input::placeholder{color:rgba(255,255,255,0.2);font-size:1rem;font-weight:400;}
+.quick-values{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.quick-val{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#ccc;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.quick-val:hover,.quick-val.active{background:rgba(124,106,247,0.25);border-color:#7c6af7;color:#fff;}
+.result-box{background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;text-align:center;margin-bottom:4px;}
+.result-box .rlabel{font-size:.68rem;color:#aaa;margin-bottom:6px;letter-spacing:.4px;text-transform:uppercase;}
+.result-box .rvalue{font-size:1.6rem;font-weight:800;color:#7cf7c8;}
+.result-box .rnote{font-size:.68rem;color:#666;margin-top:4px;}
+.invest-err{color:#ff6b6b;font-size:.74rem;margin-top:8px;display:none;text-align:center;padding:8px;background:rgba(255,107,107,0.08);border-radius:8px;}
+
+/* ── APORTES ── */
+#aportesOverlay .modal{width:420px;}
+.aportes-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.aportes-header .ah-icon{font-size:1.4rem;}
+.aportes-header h3{font-size:1.05rem;font-weight:800;color:#c89eff;margin:0;}
+.aportes-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.ap-stat{background:rgba(255,255,255,0.05);border-radius:12px;padding:12px 8px;text-align:center;}
+.ap-stat .ap-val{font-size:1.1rem;font-weight:800;color:#fff;}
+.ap-stat .ap-label{font-size:.65rem;color:#aaa;margin-top:3px;}
+.aportes-list{max-height:300px;overflow-y:auto;}
+.aporte-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);margin-bottom:8px;transition:background .2s;}
+.aporte-item:hover{background:rgba(255,255,255,0.07);}
+.aporte-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.aporte-icon.lula{background:linear-gradient(135deg,#e63946,#c1121f);}
+.aporte-icon.flavio{background:linear-gradient(135deg,#1d3557,#457b9d);}
+.aporte-info{flex:1;min-width:0;}
+.aporte-option{font-size:.82rem;font-weight:700;color:#fff;}
+.aporte-date{font-size:.68rem;color:#666;margin-top:2px;}
+.aporte-values{text-align:right;flex-shrink:0;}
+.aporte-invested{font-size:.9rem;font-weight:700;color:#fff;}
+.aporte-projected{font-size:.7rem;color:#7cf7c8;margin-top:2px;}
+.aporte-badge{font-size:.6rem;padding:2px 7px;border-radius:10px;background:rgba(124,106,247,0.2);color:#c89eff;margin-top:3px;display:inline-block;}
+.no-aportes{text-align:center;padding:30px 20px;color:#555;}
+.no-aportes .na-icon{font-size:2rem;margin-bottom:8px;}
+.no-aportes p{font-size:.82rem;}
+
+/* ── DEPOSIT ── */
+#depositOverlay .modal{width:400px;}
+.deposit-title{text-align:center;margin-bottom:18px;}
+.deposit-title .emoji{font-size:2rem;margin-bottom:6px;}
+.deposit-title h3{font-size:1.1rem;font-weight:800;color:#5e9ef7;margin-bottom:4px;}
+.deposit-title p{font-size:.76rem;color:#aaa;}
+.deposit-plans{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.dep-card{border-radius:13px;border:2px solid rgba(94,158,247,0.2);background:rgba(94,158,247,0.05);padding:18px 8px;text-align:center;cursor:pointer;transition:all .2s;}
+.dep-card:hover{border-color:#5e9ef7;background:rgba(94,158,247,0.15);transform:translateY(-2px);}
+.dep-card .dep-amount{font-size:1.4rem;font-weight:800;color:#fff;}
+.dep-card .dep-currency{font-size:.68rem;color:#aaa;margin-bottom:4px;}
+.dep-card .dep-label{font-size:.65rem;color:#5e9ef7;margin-top:4px;font-weight:600;}
+.pending-box{background:rgba(255,200,80,0.07);border:1px solid rgba(255,200,80,0.25);border-radius:13px;padding:18px;text-align:center;margin-bottom:16px;}
+.pending-box .pend-icon{font-size:1.8rem;margin-bottom:8px;}
+.pending-box .pend-title{font-size:.9rem;font-weight:700;color:#ffc850;margin-bottom:4px;}
+.pending-box .pend-amount{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:4px;}
+.pending-box .pend-hint{font-size:.72rem;color:#aaa;line-height:1.5;}
+.btn-check{width:100%;padding:13px;border-radius:10px;border:none;background:linear-gradient(90deg,#ffc850,#ff9f50);color:#1a1a2e;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.btn-check:hover{opacity:.85;}
+.btn-check:disabled{opacity:.4;cursor:not-allowed;}
+.check-status{text-align:center;font-size:.78rem;margin-bottom:10px;min-height:20px;}
+.check-status.ok{color:#7cf7c8;}
+.check-status.fail{color:#ff6b6b;}
+.check-status.wait{color:#ffc850;}
+.btn-open-pay{width:100%;padding:12px;border-radius:10px;border:2px solid rgba(94,158,247,0.4);background:rgba(94,158,247,0.08);color:#5e9ef7;font-size:.88rem;font-weight:600;cursor:pointer;margin-bottom:8px;}
+.btn-open-pay:hover{background:rgba(94,158,247,0.18);}
+
+/* ── SAQUE ── */
+#saqueOverlay .modal{width:400px;}
+.saque-balance{background:rgba(124,247,200,0.07);border:1px solid rgba(124,247,200,0.22);border-radius:12px;padding:14px;text-align:center;margin-bottom:16px;}
+.saque-balance .bal-label{font-size:.7rem;color:#aaa;margin-bottom:3px;}
+.saque-balance .bal-value{font-size:1.7rem;font-weight:700;color:#7cf7c8;}
+.saque-balance .bal-min{font-size:.68rem;color:#ff9f7f;margin-top:3px;}
+.section-title{font-size:.72rem;color:#aaa;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase;}
+.account-list{margin-bottom:13px;max-height:150px;overflow-y:auto;}
+.account-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;border:2px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.03);margin-bottom:7px;cursor:pointer;transition:all .2s;}
+.account-item:hover,.account-item.sel{border-color:#7c6af7;background:rgba(124,106,247,0.13);}
+.account-item .acc-icon{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7c6af7,#5e9ef7);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
+.account-item .acc-info{flex:1;min-width:0;}
+.account-item .acc-name{font-size:.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.account-item .acc-pix{font-size:.67rem;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.no-accounts{text-align:center;padding:16px;color:#555;font-size:.8rem;}
+.add-account-btn{width:100%;padding:10px;border-radius:10px;border:2px dashed rgba(255,255,255,0.18);background:transparent;color:#aaa;font-size:.82rem;cursor:pointer;margin-bottom:14px;transition:all .2s;}
+.add-account-btn:hover{border-color:#7c6af7;color:#7c6af7;}
+.saque-amount-row{margin-bottom:10px;}
+.saque-amount-row input{width:100%;padding:10px 13px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:#fff;font-size:.9rem;outline:none;}
+.saque-amount-row input:focus{border-color:#7cf7c8;}
+.btn-saque-confirm{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,#7cf7c8,#5e9ef7);color:#1a1a2e;font-size:.92rem;font-weight:700;cursor:pointer;}
+.btn-saque-confirm:hover{opacity:.85;}
+.saque-err{color:#ff6b6b;font-size:.73rem;margin-bottom:9px;display:none;}
+
+/* ── ADD ACCOUNT ── */
+#addAccountOverlay .modal{width:360px;}
+.form-field{margin-bottom:13px;}
+.form-field label{display:block;font-size:.72rem;color:#ccc;margin-bottom:4px;letter-spacing:.3px;text-transform:uppercase;}
+.form-field input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:#fff;font-size:.88rem;outline:none;transition:border .2s;}
+.form-field input:focus{border-color:#7c6af7;}
+.form-field input.err-field{border-color:#ff6b6b;}
+.form-field .field-err{color:#ff6b6b;font-size:.7rem;margin-top:3px;display:none;}
+.pix-type-row{display:flex;gap:7px;margin-bottom:13px;}
+.pix-type-btn{flex:1;padding:7px 3px;border-radius:8px;border:1px solid rgba(255,255,255,0.13);background:rgba(255,255,255,0.04);color:#bbb;font-size:.72rem;cursor:pointer;transition:all .2s;text-align:center;}
+.pix-type-btn.active{border-color:#7c6af7;background:rgba(124,106,247,0.18);color:#fff;}
+
+/* ── INVITE ── */
+#inviteOverlay .modal{width:400px;}
+.invite-hero{text-align:center;margin-bottom:20px;}
+.invite-hero .emoji{font-size:2.5rem;margin-bottom:8px;}
+.invite-hero h3{font-size:1.1rem;font-weight:800;color:#ffc850;margin-bottom:4px;}
+.invite-hero p{font-size:.78rem;color:#aaa;line-height:1.5;}
+.invite-code-box{background:rgba(255,200,80,0.08);border:2px dashed rgba(255,200,80,0.35);border-radius:14px;padding:18px;text-align:center;margin-bottom:18px;}
+.invite-code-box .code-label{font-size:.7rem;color:#aaa;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;}
+.invite-code-box .code-value{font-size:2rem;font-weight:900;letter-spacing:8px;color:#ffc850;font-family:monospace;}
+.invite-code-box .code-sub{font-size:.68rem;color:#888;margin-top:6px;}
+.copy-btn{width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(90deg,#ffc850,#ff9f50);color:#1a1a2e;font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:14px;}
+.copy-btn:hover{opacity:.85;}
+.invite-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-box{background:rgba(255,255,255,0.05);border-radius:12px;padding:14px;text-align:center;}
+.stat-box .stat-val{font-size:1.4rem;font-weight:700;color:#fff;}
+.stat-box .stat-label{font-size:.68rem;color:#aaa;margin-top:3px;}
+.invite-list-title{font-size:.72rem;color:#aaa;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+.invite-list{max-height:120px;overflow-y:auto;}
+.invite-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.04);margin-bottom:6px;font-size:.78rem;}
+.invite-item .inv-name{color:#ddd;}
+.invite-item .inv-bonus{color:#7cf7c8;font-weight:600;}
+.no-invites{text-align:center;color:#555;font-size:.78rem;padding:12px;}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(60px);background:#1e3a2e;border:1px solid #7cf7c8;color:#7cf7c8;padding:11px 22px;border-radius:12px;font-size:.82rem;font-weight:600;z-index:999;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap;max-width:90vw;text-align:center;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authScreen">
+  <div class="auth-card">
+    <h2>LULA VS FLAVIO</h2>
+    <p class="tagline">Entre na sua conta ou crie uma nova</p>
+    <div class="tab-row">
+      <button class="tab-btn active" id="loginTabBtn" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="tab-btn" id="registerTabBtn" onclick="switchAuthTab('register')">Cadastrar</button>
+    </div>
+    <div id="loginForm">
+      <div class="field"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com"/></div>
+      <div class="field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="auth-err" id="loginErr">E-mail ou senha incorretos.</div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+    </div>
+    <div id="registerForm" style="display:none;">
+      <div class="field"><label>Nome completo</label><input type="text" id="regName" placeholder="Seu nome completo"/><div class="ferr" id="regNameErr">Informe seu nome.</div></div>
+      <div class="field"><label>E-mail</label><input type="email" id="regEmail" placeholder="seu@email.com"/><div class="ferr" id="regEmailErr">Informe um e-mail válido.</div></div>
+      <div class="field"><label>Senha</label><input type="password" id="regPass" placeholder="Mínimo 6 caracteres"/><div class="ferr" id="regPassErr">Mínimo 6 caracteres.</div></div>
+      <div class="field"><label>Código de convite <span style="color:#555;font-size:.68rem;">(opcional)</span></label>
+        <div class="invite-field"><input type="text" id="regInvite" placeholder="Ex: ABCDE" maxlength="5" style="text-transform:uppercase;"/><span class="invite-optional">opcional</span></div>
+        <div class="ferr" id="regInviteErr">Código inválido.</div>
+      </div>
+      <div class="auth-err" id="registerErr">Este e-mail já está cadastrado.</div>
+      <button class="btn-primary" onclick="doRegister()">Criar conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="dash-card">
+    <div class="dash-top">
+      <h2>LULA VS FLAVIO</h2>
+      <span class="user-badge" id="userBadge">👤</span>
+    </div>
+    <div class="dash-balance">
+      <div class="bal-label">SALDO DISPONÍVEL</div>
+      <div class="bal-val" id="dashBalance">R$ 0,00</div>
+    </div>
+    <div class="options-row">
+      <button class="opt-btn" onclick="openValueTab('LULA')">LULA</button>
+      <button class="opt-btn" onclick="openValueTab('FLAVIO BOLSONARO')">FLAVIO BOLSONARO</button>
+    </div>
+    <div class="action-grid">
+      <button class="action-btn btn-saque" onclick="openSaque()">💸 SAQUE</button>
+      <button class="action-btn btn-deposito" onclick="openDeposit()">💳 DEPOSITAR</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="action-btn btn-aportes" style="width:100%;padding:14px;" onclick="openAportes()">📊 APORTES INVESTIDOS</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="action-btn btn-invite" style="width:100%;padding:14px;" onclick="openInvite()">🎁 CONVIDE E GANHE R$ 10,00</button>
+    </div>
+    <span class="logout-link" onclick="logout()">Sair da conta</span>
+  </div>
+</div>
+
+<!-- VALUE TAB -->
+<div class="overlay" id="valueOverlay">
+  <div class="modal">
+    <span class="option-badge" id="optionBadge">LULA</span>
+    <h3>Quanto deseja investir?</h3>
+    <p class="hint">Digite o valor ou escolha uma sugestão. Resultado aplicado no dia 25 (× 3.20).</p>
+    <div class="balance-info">
+      <span class="bi-label">Saldo disponível</span>
+      <span class="bi-val" id="valueTabBalance">R$ 0,00</span>
+    </div>
+    <div class="invest-input-wrap">
+      <span class="currency-prefix">R$</span>
+      <input class="invest-input" type="number" id="investInput" placeholder="0,00" min="1" step="1" oninput="onInvestInput()"/>
+    </div>
+    <div class="quick-values">
+      <button class="quick-val" onclick="setQuickVal(10,this)">R$ 10</button>
+      <button class="quick-val" onclick="setQuickVal(20,this)">R$ 20</button>
+      <button class="quick-val" onclick="setQuickVal(50,this)">R$ 50</button>
+      <button class="quick-val" onclick="setQuickVal(100,this)">R$ 100</button>
+      <button class="quick-val" onclick="setQuickVal(200,this)">R$ 200</button>
+      <button class="quick-val" onclick="setQuickVal(500,this)">R$ 500</button>
+    </div>
+    <div class="result-box">
+      <div class="rlabel">Resultado projetado no dia 25 (× 3.20)</div>
+      <div class="rvalue" id="projResult">—</div>
+      <div class="rnote" id="projNote"></div>
+    </div>
+    <div class="invest-err" id="investErr">⚠️ Saldo insuficiente para este investimento.</div>
+    <div class="modal-actions">
+      <button class="btn-sec" onclick="closeValueTab()">Cancelar</button>
+      <button class="btn-confirm" id="confirmValBtn" disabled onclick="confirmValue()">Confirmar Investimento</button>
+    </div>
+  </div>
+</div>
+
+<!-- APORTES INVESTIDOS -->
+<div class="overlay" id="aportesOverlay">
+  <div class="modal" style="width:420px;">
+    <div class="aportes-header">
+      <span class="ah-icon">📊</span>
+      <h3>APORTES INVESTIDOS</h3>
+    </div>
+    <div class="aportes-summary">
+      <div class="ap-stat"><div class="ap-val" id="apTotal">0</div><div class="ap-label">Total de aportes</div></div>
+      <div class="ap-stat"><div class="ap-val" id="apInvested">R$ 0</div><div class="ap-label">Total investido</div></div>
+      <div class="ap-stat"><div class="ap-val" id="apProjected">R$ 0</div><div class="ap-label">Retorno projetado</div></div>
+    </div>
+    <div class="aportes-list" id="aportesListEl"></div>
+    <div style="text-align:center;margin-top:14px;">
+      <span class="logout-link" onclick="closeAportes()">← Voltar</span>
+    </div>
+  </div>
+</div>
+
+<!-- DEPOSIT -->
+<div class="overlay" id="depositOverlay">
+  <div class="modal">
+    <div id="depositStep1">
+      <div class="deposit-title">
+        <div class="emoji">💳</div>
+        <h3>DEPOSITAR</h3>
+        <p>Escolha o valor que deseja depositar na sua conta.</p>
+      </div>
+      <div class="deposit-plans">
+        <div class="dep-card" onclick="startDeposit(30)"><div class="dep-currency">R$</div><div class="dep-amount">30</div><div class="dep-label">Starter</div></div>
+        <div class="dep-card" onclick="startDeposit(60)"><div class="dep-currency">R$</div><div class="dep-amount">60</div><div class="dep-label">Standard</div></div>
+        <div class="dep-card" onclick="startDeposit(120)"><div class="dep-currency">R$</div><div class="dep-amount">120</div><div class="dep-label">Premium</div></div>
+      </div>
+      <div style="text-align:center;"><span class="logout-link" onclick="closeDeposit()">← Voltar</span></div>
+    </div>
+    <div id="depositStep2" style="display:none;">
+      <div class="pending-box">
+        <div class="pend-icon">⏳</div>
+        <div class="pend-title">Aguardando Pagamento</div>
+        <div class="pend-amount" id="pendAmount">R$ 0,00</div>
+        <div class="pend-hint">Clique abaixo para ir à página de pagamento. Após pagar, clique em <strong>"Já Paguei"</strong> para confirmar e creditar o saldo.</div>
+      </div>
+      <button class="btn-open-pay" onclick="openPaymentLink()">🔗 Ir para Página de Pagamento</button>
+      <button class="btn-check" id="checkPayBtn" onclick="confirmPayment()">✅ Já Paguei — Confirmar Depósito</button>
+      <div class="check-status" id="checkStatus"></div>
+      <div style="text-align:center;"><span class="logout-link" onclick="backToDepositStep1()">← Escolher outro valor</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SAQUE -->
+<div class="overlay" id="saqueOverlay">
+  <div class="modal">
+    <h3>💸 SAQUE</h3>
+    <p class="hint">Retire seu saldo para uma conta Pix cadastrada.</p>
+    <div class="saque-balance">
+      <div class="bal-label">SALDO DISPONÍVEL</div>
+      <div class="bal-value" id="saqueBalance">R$ 0,00</div>
+      <div class="bal-min">Saque mínimo: R$ 30,00</div>
+    </div>
+    <div class="section-title">Contas Cadastradas</div>
+    <div class="account-list" id="accountList"></div>
+    <button class="add-account-btn" onclick="openAddAccount()">+ Adicionar Nova Conta</button>
+    <div class="section-title">Valor do Saque</div>
+    <div class="saque-amount-row"><input type="number" id="saqueAmountInput" placeholder="Valor (mín. R$ 30)" min="30" step="1"/></div>
+    <div class="saque-err" id="saqueErr"></div>
+    <button class="btn-saque-confirm" onclick="confirmSaque()">Confirmar Saque</button>
+    <div style="text-align:center;margin-top:12px;"><span class="logout-link" onclick="closeSaque()">← Voltar</span></div>
+  </div>
+</div>
+
+<!-- ADD ACCOUNT -->
+<div class="overlay" id="addAccountOverlay">
+  <div class="modal">
+    <h3>Adicionar Conta Pix</h3>
+    <p class="hint">Preencha seus dados. A conta será salva para saques futuros.</p>
+    <div class="form-field"><label>Nome completo</label><input type="text" id="accName" placeholder="Seu nome completo"/><div class="field-err" id="accNameErr">Informe seu nome.</div></div>
+    <div class="form-field"><label>CPF</label><input type="text" id="accCpf" placeholder="xxx.xxx.xxx-xx" maxlength="14" oninput="maskCpf(this)"/><div class="field-err" id="accCpfErr">CPF inválido (xxx.xxx.xxx-xx).</div></div>
+    <div class="form-field"><label>Tipo de Chave Pix</label>
+      <div class="pix-type-row">
+        <button class="pix-type-btn active" onclick="setPixType(this,'CPF')">CPF</button>
+        <button class="pix-type-btn" onclick="setPixType(this,'Email')">E-mail</button>
+        <button class="pix-type-btn" onclick="setPixType(this,'Telefone')">Telefone</button>
+        <button class="pix-type-btn" onclick="setPixType(this,'Aleatória')">Aleatória</button>
+      </div>
+    </div>
+    <div class="form-field"><label>Chave Pix</label><input type="text" id="accPix" placeholder="Informe sua chave Pix"/><div class="field-err" id="accPixErr">Informe sua chave Pix.</div></div>
+    <div class="modal-actions">
+      <button class="btn-sec" onclick="closeAddAccount()">Cancelar</button>
+      <button class="btn-confirm" onclick="saveAccount()">Salvar Conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVITE -->
+<div class="overlay" id="inviteOverlay">
+  <div class="modal">
+    <div class="invite-hero">
+      <div class="emoji">🎁</div>
+      <h3>CONVIDE E GANHE R$ 10,00</h3>
+      <p>Compartilhe seu código. A cada amigo que se cadastrar, você ganha <strong style="color:#ffc850;">R$ 10,00</strong> no saldo!</p>
+    </div>
+    <div class="invite-code-box">
+      <div class="code-label">Seu Código de Convite</div>
+      <div class="code-value" id="myInviteCode">—</div>
+      <div class="code-sub">Compartilhe este código com seus amigos</div>
+    </div>
+    <button class="copy-btn" onclick="copyInviteCode()">📋 Copiar Código</button>
+    <div class="invite-stats">
+      <div class="stat-box"><div class="stat-val" id="inviteCount">0</div><div class="stat-label">Amigos convidados</div></div>
+      <div class="stat-box"><div class="stat-val" id="inviteEarned">R$ 0,00</div><div class="stat-label">Total ganho</div></div>
+    </div>
+    <div class="invite-list-title">Histórico de Convites</div>
+    <div class="invite-list" id="inviteList"></div>
+    <div style="text-align:center;margin-top:14px;"><span class="logout-link" onclick="closeInvite()">← Voltar</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const DEPOSIT_LINKS={30:'https://pagseguropix.org/c/deposito-de-30',60:'https://pagseguropix.org/c/deposito-de-60',120:'https://pagseguropix.org/c/deposito-de-120-lula-vs-flavio'};
+  const MULTIPLIER=3.20,MIN_SAQUE=30,INVITE_BONUS=10;
+  let currentOption=null,selectedValue=null,selectedAccId=null,pixType='CPF',currentUser=null,pendingDepositAmount=null;
+
+  // ── STORAGE ──
+  function getUsers(){return JSON.parse(localStorage.getItem('lvf_users')||'{}');}
+  function saveUsers(u){localStorage.setItem('lvf_users',JSON.stringify(u));}
+  function getUser(e){return getUsers()[e]||null;}
+  function updateUser(e,d){const u=getUsers();u[e]={...u[e],...d};saveUsers(u);}
+  function getAccounts(e){return getUser(e)?.accounts||[];}
+  function saveAccountsForUser(e,a){updateUser(e,{accounts:a});}
+  function getBalance(e){return parseFloat(getUser(e)?.balance||0);}
+  function setBalance(e,v){updateUser(e,{balance:parseFloat(v.toFixed(2))});}
+  function getAportes(e){return getUser(e)?.aportes||[];}
+  function addAporte(e,aporte){const a=getAportes(e);a.push(aporte);updateUser(e,{aportes:a});}
+  function getPending(e){return JSON.parse(localStorage.getItem('lvf_pending_'+e)||'null');}
+  function setPending(e,obj){localStorage.setItem('lvf_pending_'+e,JSON.stringify(obj));}
+  function clearPending(e){localStorage.removeItem('lvf_pending_'+e);}
+
+  function genCode(){
+    const c='ABCDEFGHIJKLMNOPQRSTUVWXYZ';let code='';
+    for(let i=0;i<5;i++)code+=c[Math.floor(Math.random()*c.length)];
+    const used=Object.values(getUsers()).map(u=>u.inviteCode);
+    return used.includes(code)?genCode():code;
+  }
+  function findUserByCode(code){return Object.entries(getUsers()).find(([,u])=>u.inviteCode===code.toUpperCase())||null;}
+
+  // ── AUTH ──
+  function switchAuthTab(tab){
+    document.getElementById('loginForm').style.display=tab==='login'?'block':'none';
+    document.getElementById('registerForm').style.display=tab==='register'?'block':'none';
+    document.getElementById('loginTabBtn').classList.toggle('active',tab==='login');
+    document.getElementById('registerTabBtn').classList.toggle('active',tab==='register');
+    ['loginErr','registerErr'].forEach(id=>document.getElementById(id).style.display='none');
+  }
+  function doLogin(){
+    const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+    const pass=document.getElementById('loginPass').value;
+    const user=getUser(email);
+    if(!user||user.password!==pass){document.getElementById('loginErr').style.display='block';return;}
+    document.getElementById('loginErr').style.display='none';
+    currentUser=email;enterDashboard();
+  }
+  function doRegister(){
+    let valid=true;
+    const name=document.getElementById('regName').value.trim();
+    const email=document.getElementById('regEmail').value.trim().toLowerCase();
+    const pass=document.getElementById('regPass').value;
+    const invite=document.getElementById('regInvite').value.trim().toUpperCase();
+    const show=(id,s)=>document.getElementById(id).style.display=s?'block':'none';
+    if(!name){show('regNameErr',true);valid=false;}else show('regNameErr',false);
+    if(!email||!email.includes('@')){show('regEmailErr',true);valid=false;}else show('regEmailErr',false);
+    if(pass.length<6){show('regPassErr',true);valid=false;}else show('regPassErr',false);
+    let inviterEmail=null;
+    if(invite){const f=findUserByCode(invite);if(!f){show('regInviteErr',true);valid=false;}else{show('regInviteErr',false);inviterEmail=f[0];}}
+    else show('regInviteErr',false);
+    if(!valid)return;
+    const users=getUsers();
+    if(users[email]){document.getElementById('registerErr').style.display='block';return;}
+    document.getElementById('registerErr').style.display='none';
+    const code=genCode();
+    users[email]={name,password:pass,inviteCode:code,balance:0,accounts:[],invites:[],aportes:[]};
+    saveUsers(users);
+    if(inviterEmail){const inv=getUser(inviterEmail);updateUser(inviterEmail,{balance:parseFloat(((inv.balance||0)+INVITE_BONUS).toFixed(2)),invites:[...(inv.invites||[]),{name,date:new Date().toLocaleDateString('pt-BR')}]});}
+    currentUser=email;enterDashboard();
+    showToast(`Bem-vindo(a), ${name}! Código: ${code}`);
+  }
+  function enterDashboard(){
+    document.getElementById('authScreen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    document.getElementById('userBadge').textContent=`👤 ${getUser(currentUser).name.split(' ')[0]}`;
+    refreshDashBalance();
+  }
+  function refreshDashBalance(){
+    const b=getBalance(currentUser);
+    document.getElementById('dashBalance').textContent=`R$ ${b.toFixed(2).replace('.',',')}`;
+  }
+  function logout(){
+    currentUser=null;
+    document.getElementById('dashboard').style.display='none';
+    document.getElementById('authScreen').style.display='block';
+    document.getElementById('loginEmail').value='';
+    document.getElementById('loginPass').value='';
+    switchAuthTab('login');
+  }
+
+  // ── VALUE TAB ──
+  function openValueTab(opt){
+    currentOption=opt;selectedValue=null;
+    document.getElementById('optionBadge').textContent=opt;
+    document.getElementById('investInput').value='';
+    document.getElementById('investInput').classList.remove('err-border');
+    document.getElementById('projResult').textContent='—';
+    document.getElementById('projNote').textContent='';
+    document.getElementById('confirmValBtn').disabled=true;
+    document.getElementById('investErr').style.display='none';
+    document.querySelectorAll('.quick-val').forEach(b=>b.classList.remove('active'));
+    const bal=getBalance(currentUser);
+    document.getElementById('valueTabBalance').textContent=`R$ ${bal.toFixed(2).replace('.',',')}`;
+    document.getElementById('valueOverlay').classList.add('show');
+  }
+  function onInvestInput(){
+    document.querySelectorAll('.quick-val').forEach(b=>b.classList.remove('active'));
+    const v=parseFloat(document.getElementById('investInput').value);
+    updateProjection(v);
+  }
+  function setQuickVal(v,btn){
+    document.getElementById('investInput').value=v;
+    document.querySelectorAll('.quick-val').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    updateProjection(v);
+  }
+  function updateProjection(v){
+    const err=document.getElementById('investErr');
+    const inp=document.getElementById('investInput');
+    const bal=getBalance(currentUser);
+    if(!v||v<=0){
+      document.getElementById('projResult').textContent='—';
+      document.getElementById('projNote').textContent='';
+      document.getElementById('confirmValBtn').disabled=true;
+      err.style.display='none';
+      inp.classList.remove('err-border');
+      return;
+    }
+    if(v>bal){
+      document.getElementById('projResult').textContent='—';
+      document.getElementById('projNote').textContent='';
+      document.getElementById('confirmValBtn').disabled=true;
+      err.style.display='block';
+      inp.classList.add('err-border');
+      selectedValue=null;
+      return;
+    }
+    err.style.display='none';
+    inp.classList.remove('err-border');
+    selectedValue=v;
+    const r=(v*MULTIPLIER).toFixed(2);
+    document.getElementById('projResult').textContent=`R$ ${r.replace('.',',')}`;
+    document.getElementById('projNote').textContent=`R$ ${v} × 3.20 = R$ ${r} (aplicado no dia 25)`;
+    document.getElementById('confirmValBtn').disabled=false;
+  }
+  function closeValueTab(){document.getElementById('valueOverlay').classList.remove('show');}
+  function confirmValue(){
+    if(!selectedValue||selectedValue<=0)return;
+    const bal=getBalance(currentUser);
+    if(selectedValue>bal){document.getElementById('investErr').style.display='block';return;}
+    // Deduct from balance and save aporte
+    setBalance(currentUser,bal-selectedValue);
+    const projected=(selectedValue*MULTIPLIER).toFixed(2);
+    addAporte(currentUser,{
+      option:currentOption,
+      amount:selectedValue,
+      projected:parseFloat(projected),
+      date:new Date().toLocaleDateString('pt-BR'),
+      time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+    });
+    refreshDashBalance();
+    closeValueTab();
+    showToast(`✅ R$ ${selectedValue} investido em ${currentOption}!`);
+  }
+
+  // ── APORTES ──
+  function openAportes(){
+    const aportes=getAportes(currentUser);
+    const total=aportes.length;
+    const totalInvested=aportes.reduce((s,a)=>s+a.amount,0);
+    const totalProjected=aportes.reduce((s,a)=>s+a.projected,0);
+    document.getElementById('apTotal').textContent=total;
+    document.getElementById('apInvested').textContent=`R$ ${totalInvested.toFixed(2).replace('.',',')}`;
+    document.getElementById('apProjected').textContent=`R$ ${totalProjected.toFixed(2).replace('.',',')}`;
+    const list=document.getElementById('aportesListEl');
+    list.innerHTML='';
+    if(!aportes.length){
+      list.innerHTML=`<div class="no-aportes"><div class="na-icon">📭</div><p>Nenhum investimento realizado ainda.<br>Escolha LULA ou FLAVIO BOLSONARO para começar!</p></div>`;
+    } else {
+      [...aportes].reverse().forEach((a,i)=>{
+        const isLula=a.option==='LULA';
+        const div=document.createElement('div');
+        div.className='aporte-item';
+        div.innerHTML=`
+          <div class="aporte-icon ${isLula?'lula':'flavio'}">${isLula?'🔴':'🔵'}</div>
+          <div class="aporte-info">
+            <div class="aporte-option">${a.option}</div>
+            <div class="aporte-date">${a.date} às ${a.time}</div>
+            <span class="aporte-badge">Dia 25 × 3.20</span>
+          </div>
+          <div class="aporte-values">
+            <div class="aporte-invested">R$ ${a.amount.toFixed(2).replace('.',',')}</div>
+            <div class="aporte-projected">→ R$ ${a.projected.toFixed(2).replace('.',',')}</div>
+          </div>`;
+        list.appendChild(div);
+      });
+    }
+    document.getElementById('aportesOverlay').classList.add('show');
+  }
+  function closeAportes(){document.getElementById('aportesOverlay').classList.remove('show');}
+
+  // ── DEPOSIT ──
+  function openDeposit(){
+    document.getElementById('depositStep1').style.display='block';
+    document.getElementById('depositStep2').style.display='none';
+    document.getElementById('checkStatus').textContent='';
+    document.getElementById('depositOverlay').classList.add('show');
+  }
+  function closeDeposit(){document.getElementById('depositOverlay').classList.remove('show');}
+  function backToDepositStep1(){
+    clearPending(currentUser);pendingDepositAmount=null;
+    document.getElementById('depositStep1').style.display='block';
+    document.getElementById('depositStep2').style.display='none';
+    document.getElementById('checkStatus').textContent='';
+  }
+  function startDeposit(amount){
+    pendingDepositAmount=amount;
+    setPending(currentUser,{amount,ts:Date.now()});
+    document.getElementById('pendAmount').textContent=`R$ ${amount},00`;
+    document.getElementById('checkStatus').textContent='';
+    document.getElementById('checkPayBtn').disabled=false;
+    document.getElementById('depositStep1').style.display='none';
+    document.getElementById('depositStep2').style.display='block';
+    window.open(DEPOSIT_LINKS[amount],'_blank');
+  }
+  function openPaymentLink(){if(pendingDepositAmount)window.open(DEPOSIT_LINKS[pendingDepositAmount],'_blank');}
+  function confirmPayment(){
+    const btn=document.getElementById('checkPayBtn');
+    const status=document.getElementById('checkStatus');
+    btn.disabled=true;status.className='check-status wait';status.textContent='Verificando pagamento…';
+    setTimeout(()=>{
+      const amount=pendingDepositAmount||getPending(currentUser)?.amount;
+      if(!amount){status.className='check-status fail';status.textContent='Nenhum depósito pendente.';btn.disabled=false;return;}
+      setBalance(currentUser,getBalance(currentUser)+amount);
+      refreshDashBalance();clearPending(currentUser);pendingDepositAmount=null;
+      status.className='check-status ok';status.textContent=`✅ R$ ${amount},00 creditado com sucesso!`;
+      showToast(`R$ ${amount},00 adicionado ao seu saldo!`);
+      setTimeout(()=>closeDeposit(),2000);
+    },1800);
+  }
+
+  // ── SAQUE ──
+  function openSaque(){
+    selectedAccId=null;
+    document.getElementById('saqueAmountInput').value='';
+    document.getElementById('saqueErr').style.display='none';
+    document.getElementById('saqueBalance').textContent=`R$ ${getBalance(currentUser).toFixed(2).replace('.',',')}`;
+    renderAccountList();
+    document.getElementById('saqueOverlay').classList.add('show');
+  }
+  function closeSaque(){document.getElementById('saqueOverlay').classList.remove('show');}
+  function renderAccountList(){
+    const list=document.getElementById('accountList');
+    const accounts=getAccounts(currentUser);
+    list.innerHTML='';
+    if(!accounts.length){list.innerHTML='<div class="no-accounts">Nenhuma conta cadastrada.</div>';return;}
+    accounts.forEach((acc,i)=>{
+      const div=document.createElement('div');
+      div.className='account-item'+(selectedAccId===i?' sel':'');
+      div.innerHTML=`<div class="acc-icon">👤</div><div class="acc-info"><div class="acc-name">${acc.name}</div><div class="acc-pix">${acc.pixType}: ${acc.pix} | CPF: ${acc.cpf}</div></div>`;
+      div.onclick=()=>{selectedAccId=i;document.querySelectorAll('.account-item').forEach((el,idx)=>el.classList.toggle('sel',idx===i));};
+      list.appendChild(div);
+    });
+  }
+  function confirmSaque(){
+    const errEl=document.getElementById('saqueErr');errEl.style.display='none';
+    const amount=parseFloat(document.getElementById('saqueAmountInput').value);
+    const bal=getBalance(currentUser);
+    if(selectedAccId===null){errEl.textContent='Selecione uma conta.';errEl.style.display='block';return;}
+    if(isNaN(amount)||amount<MIN_SAQUE){errEl.textContent=`Saque mínimo é R$ ${MIN_SAQUE},00.`;errEl.style.display='block';return;}
+    if(amount>bal){errEl.textContent='Saldo insuficiente.';errEl.style.display='block';return;}
+    const acc=getAccounts(currentUser)[selectedAccId];
+    setBalance(currentUser,bal-amount);
+    refreshDashBalance();closeSaque();
+    showToast(`Saque de R$ ${amount.toFixed(2).replace('.',',')} solicitado para ${acc.name}`);
+  }
+
+  // ── ADD ACCOUNT ──
+  function openAddAccount(){
+    ['accName','accCpf','accPix'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err-field');});
+    ['accNameErr','accCpfErr','accPixErr'].forEach(id=>document.getElementById(id).style.display='none');
+    document.querySelectorAll('.pix-type-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.pix-type-btn').classList.add('active');
+    pixType='CPF';
+    document.getElementById('addAccountOverlay').classList.add('show');
+  }
+  function closeAddAccount(){document.getElementById('addAccountOverlay').classList.remove('show');}
+  function setPixType(btn,type){pixType=type;document.querySelectorAll('.pix-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  function maskCpf(input){
+    let v=input.value.replace(/\D/g,'');
+    if(v.length>11)v=v.slice(0,11);
+    if(v.length>9)v=v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
+    else if(v.length>6)v=v.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
+    else if(v.length>3)v=v.replace(/(\d{3})(\d{1,3})/,'$1.$2');
+    input.value=v;
+  }
+  function saveAccount(){
+    let valid=true;
+    const name=document.getElementById('accName').value.trim();
+    const cpf=document.getElementById('accCpf').value.trim();
+    const pix=document.getElementById('accPix').value.trim();
+    const cpfRegex=/^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+    if(!name){document.getElementById('accNameErr').style.display='block';document.getElementById('accName').classList.add('err-field');valid=false;}
+    else{document.getElementById('accNameErr').style.display='none';document.getElementById('accName').classList.remove('err-field');}
+    if(!cpfRegex.test(cpf)){document.getElementById('accCpfErr').style.display='block';document.getElementById('accCpf').classList.add('err-field');valid=false;}
+    else{document.getElementById('accCpfErr').style.display='none';document.getElementById('accCpf').classList.remove('err-field');}
+    if(!pix){document.getElementById('accPixErr').style.display='block';document.getElementById('accPix').classList.add('err-field');valid=false;}
+    else{document.getElementById('accPixErr').style.display='none';document.getElementById('accPix').classList.remove('err-field');}
+    if(!valid)return;
+    const accounts=getAccounts(currentUser);
+    accounts.push({name,cpf,pix,pixType});
+    saveAccountsForUser(currentUser,accounts);
+    closeAddAccount();renderAccountList();
+    showToast('Conta salva com sucesso!');
+  }
+
+  // ── INVITE ──
+  function openInvite(){
+    const user=getUser(currentUser);
+    document.getElementById('myInviteCode').textContent=user.inviteCode||'—';
+    const invites=user.invites||[];
+    document.getElementById('inviteCount').textContent=invites.length;
+    document.getElementById('inviteEarned').textContent=`R$ ${(invites.length*INVITE_BONUS).toFixed(2).replace('.',',')}`;
+    const list=document.getElementById('inviteList');list.innerHTML='';
+    if(!invites.length){list.innerHTML='<div class="no-invites">Nenhum convite realizado ainda.</div>';}
+    else{invites.slice().reverse().forEach(inv=>{const d=document.createElement('div');d.className='invite-item';d.innerHTML=`<span class="inv-name">👤 ${inv.name}</span><span class="inv-bonus">+R$ ${INVITE_BONUS},00 — ${inv.date}</span>`;list.appendChild(d);});}
+    document.getElementById('inviteOverlay').classList.add('show');
+  }
+  function closeInvite(){document.getElementById('inviteOverlay').classList.remove('show');}
+  function copyInviteCode(){
+    const code=document.getElementById('myInviteCode').textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(code).then(()=>showToast('Código copiado!'));}
+    else showToast('Código: '+code);
+  }
+
+  // ── TOAST ──
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3500);
+  }
+</script>
+</body>
+</html>
