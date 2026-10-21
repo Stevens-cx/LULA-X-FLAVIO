@@ -737,6 +737,25 @@ function valorEmCentavos() {
     return Math.round(valor * 100);
 }
 
+  async function lerRespostaJson(response, fallbackMessage){
+    const text = await response.text();
+    if(!text.trim()){
+      throw new Error(response.ok ? 'O servidor de pagamento retornou uma resposta vazia.' : `${fallbackMessage} (${response.status}).`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(response.ok ? 'O servidor de pagamento retornou uma resposta inválida.' : `${fallbackMessage} (${response.status}).`);
+    }
+
+    if(!response.ok){
+      throw new Error(data.message || data.error || `${fallbackMessage} (${response.status}).`);
+    }
+    return data;
+  }
+
   async function gerarPix(){
     const name = document.getElementById('pixName').value.trim();
     const email = document.getElementById('pixEmail').value.trim();
@@ -769,8 +788,8 @@ if (!Number.isInteger(centavos) || centavos < 500 || centavos > 100000) {
     amount_cents: valorEmCentavos()
 })
     });
-      const tx = await r.json();
-      if(!r.ok || !tx.pix?.copy_paste) throw new Error(tx.message || 'Erro ao gerar PIX');
+      const tx = await lerRespostaJson(r, 'Não foi possível gerar o PIX');
+      if(!tx.pix?.copy_paste) throw new Error(tx.message || tx.error || 'A resposta do pagamento não contém um código PIX.');
       const codigo = tx.pix.copy_paste;
       // Mostra QR Code
       document.getElementById('depositStep1').style.display='none';
@@ -782,7 +801,8 @@ if (!Number.isInteger(centavos) || centavos < 500 || centavos > 100000) {
       const AMOUNT_REAIS = valorEmCentavos() / 100;
       pixPollingTimer = setInterval(async () => {
         try {
-          const s = await fetch(`/.netlify/functions/status-pix?id=${txId}`).then(r=>r.json());
+          const statusResponse = await fetch(`/.netlify/functions/status-pix?id=${encodeURIComponent(txId)}`);
+          const s = await lerRespostaJson(statusResponse, 'Não foi possível consultar o pagamento');
           const statusEl = document.getElementById('checkStatus');
           if(s.status === 'PAID'){
             clearInterval(pixPollingTimer); pixPollingTimer=null;
@@ -803,7 +823,11 @@ if (!Number.isInteger(centavos) || centavos < 500 || centavos > 100000) {
             statusEl.className='check-status wait';
             statusEl.textContent='⏳ Aguardando pagamento…';
           }
-        } catch(e){}
+        } catch(e){
+          const statusEl = document.getElementById('checkStatus');
+          statusEl.className='check-status fail';
+          statusEl.textContent=e.message || 'Não foi possível consultar o pagamento.';
+        }
       }, 3000);
     } catch(err){
       errEl.style.display='block';
